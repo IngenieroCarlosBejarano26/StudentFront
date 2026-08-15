@@ -1,0 +1,74 @@
+name: Deploy Azure
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: azure-production
+  cancel-in-progress: true
+
+env:
+  AZURE_WEBAPP_NAME: app-interrapidisimo-cbejarano
+  DOTNET_VERSION: "10.0.x"
+  NODE_VERSION: "20"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: IngenieroCarlosBejarano26/StudentRegistration
+          ref: master
+          path: backend
+          token: ${{ secrets.STUDENT_REGISTRATION_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build Angular
+        working-directory: frontend
+        run: |
+          npm ci
+          npx ng build --configuration production
+
+      - name: Copy Angular into API wwwroot
+        run: |
+          rm -rf backend/src/Api/wwwroot
+          mkdir -p backend/src/Api/wwwroot
+          cp -R frontend/dist/front/browser/. backend/src/Api/wwwroot/
+
+      - name: Test backend
+        working-directory: backend
+        run: dotnet test StudentRegistration.sln --configuration Release --nologo
+
+      - name: Publish API
+        working-directory: backend
+        run: dotnet publish src/Api/Api.csproj --configuration Release --output "${{ github.workspace }}/publish" --nologo
+
+      - name: Deploy to Azure App Service
+        if: github.event_name != 'pull_request'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ github.workspace }}/publish

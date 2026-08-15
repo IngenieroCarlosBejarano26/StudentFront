@@ -1,0 +1,11 @@
+html,
+body,
+app-root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-family);
+  background: var(--surface-ground);
+  color: var(--text-color);
+}
