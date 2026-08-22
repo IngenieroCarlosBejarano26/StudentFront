@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../models/api-response.model';
-import { BulkEnrollmentRequestDto } from '../../models/bulk-enrollment.model';
+import { BulkEnrollmentRequestDto, EnrollmentDto } from '../../models/bulk-enrollment.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,10 @@ import { BulkEnrollmentRequestDto } from '../../models/bulk-enrollment.model';
 export class EnrollmentService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/Enrollment`;
+
+  getMyEnrollments(): Observable<ApiResponse<EnrollmentDto[]>> {
+    return this.http.get<ApiResponse<EnrollmentDto[]>>(`${this.apiUrl}/GetMyEnrollments`);
+  }
 
   createEnrollment(
     request: BulkEnrollmentRequestDto,

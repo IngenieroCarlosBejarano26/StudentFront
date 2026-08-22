@@ -1,0 +1,95 @@
+<div class="professor-page">
+  <p-card styleClass="main-card">
+    <div class="header-row">
+      <div>
+        <h2>Registrar estudiante</h2>
+        <p>Crea la ficha del estudiante y su usuario para iniciar sesión.</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <p-card styleClass="section-card" header="Datos del estudiante">
+        <div class="formgrid grid">
+          <div class="col-12 md:col-6">
+            <label for="name">Nombre completo</label>
+            <input
+              pInputText
+              id="name"
+              formControlName="name"
+              class="w-full"
+              placeholder="Nombre del estudiante"
+              maxlength="150" />
+          </div>
+          <div class="col-12 md:col-6">
+            <label for="identificationNumber">Número de identificación</label>
+            <input
+              pInputText
+              pKeyFilter="int"
+              id="identificationNumber"
+              formControlName="identificationNumber"
+              class="w-full"
+              placeholder="Será el usuario de acceso"
+              maxlength="30" />
+          </div>
+        </div>
+        <div class="actions">
+          <p-button
+            type="submit"
+            label="Registrar y crear usuario"
+            icon="pi pi-user-plus"
+            [loading]="submitting()"
+            [disabled]="form.invalid || submitting()" />
+        </div>
+      </p-card>
+    </form>
+
+    <p-card styleClass="section-card" header="Estudiantes en mis materias">
+      <p class="hint">Solo ves a quienes ya se inscribieron en las materias que dictas.</p>
+      @if (mySubjects().length > 0) {
+        <div class="formgrid grid">
+          @for (subject of mySubjects(); track subject.subjectId) {
+            <div class="col-12 md:col-6">
+              <div class="subject-box">
+                <strong>{{ subject.subjectName }}</strong>
+                <ul>
+                  @for (student of subject.students; track student.studentId) {
+                    <li>
+                      <i class="pi pi-user"></i>
+                      <span>{{ student.name }}</span>
+                    </li>
+                  } @empty {
+                    <li class="empty">Aún no hay estudiantes inscritos</li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty-state">No hay materias asignadas a tu usuario.</p>
+      }
+    </p-card>
+
+    @if (created(); as account) {
+      <p-card styleClass="section-card credentials-card" header="Credenciales del estudiante">
+        <p-message
+          severity="warn"
+          text="Copia estos datos ahora. La contraseña temporal no se vuelve a mostrar." />
+        <dl class="credentials">
+          <div>
+            <dt>Estudiante</dt>
+            <dd>{{ account.name }}</dd>
+          </div>
+          <div>
+            <dt>Usuario</dt>
+            <dd>{{ account.username }}</dd>
+          </div>
+          <div>
+            <dt>Contraseña temporal</dt>
+            <dd>{{ account.temporaryPassword }}</dd>
+          </div>
+        </dl>
+      </p-card>
+    }
+  </p-card>
+</div>

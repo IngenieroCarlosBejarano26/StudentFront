@@ -1,16 +1,19 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SignalRService {
+  private readonly auth = inject(AuthService);
   private hubConnection!: signalR.HubConnection;
 
   startConnection(): Promise<void> {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${environment.hubUrl}?apiKey=${encodeURIComponent(environment.apiKey)}`, {
+      .withUrl(environment.hubUrl, {
+        accessTokenFactory: () => this.auth.token() ?? '',
         withCredentials: true
       })
       .withAutomaticReconnect()

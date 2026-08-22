@@ -1,0 +1,26 @@
+.forbidden-page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+:host ::ng-deep .forbidden-card.p-card {
+  width: min(420px, 100%);
+  text-align: center;
+}
+
+i {
+  font-size: 2rem;
+  color: var(--red-500);
+}
+
+h1 {
+  margin: 0.6rem 0 0.35rem;
+  font-size: 1.4rem;
+}
+
+p {
+  margin: 0 0 1rem;
+  color: var(--text-color-secondary);
+}

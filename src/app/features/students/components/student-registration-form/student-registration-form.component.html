@@ -2,61 +2,40 @@
   <p-card styleClass="main-card">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="header-row">
-        <h2 class="form-title">Registro de estudiantes</h2>
+        <div>
+          <h2 class="form-title">Mis materias</h2>
+          @if (enrolledSubjectIds().length > 0) {
+            <p class="enrolled-summary">
+              Inscrito en {{ enrolledSubjectIds().length }} de {{ maxCourses }}
+            </p>
+          }
+        </div>
         <p-button
           type="submit"
-          label="Registrar"
+          label="Inscribirme"
           icon="pi pi-check"
           size="small"
           [loading]="submitting()"
-          [disabled]="!form.valid || submitting()" />
+          [disabled]="submitting() || enrolledSubjectIds().length >= maxCourses" />
       </div>
-
-      <p-card styleClass="section-card" header="Información personal">
-        <div class="formgrid grid compact-grid">
-          <div class="col-12 md:col-6">
-            <label for="fullName">Nombre completo</label>
-            <input
-              pInputText
-              id="fullName"
-              formControlName="fullName"
-              class="w-full"
-              placeholder="Ingresa tu nombre completo"
-              maxlength="50" />
-            @if (form.get('fullName')?.invalid && form.get('fullName')?.touched) {
-              <small class="p-error">El nombre completo es obligatorio</small>
-            }
-          </div>
-          <div class="col-12 md:col-6">
-            <label for="identificationNumber">Número de identificación</label>
-            <input
-              pInputText
-              pKeyFilter="int"
-              id="identificationNumber"
-              formControlName="identificationNumber"
-              class="w-full"
-              placeholder="Ingresa tu número de identificación"
-              maxlength="10" />
-            @if (form.get('identificationNumber')?.invalid && form.get('identificationNumber')?.touched) {
-              <small class="p-error">Solo se permiten números</small>
-            }
-          </div>
-        </div>
-      </p-card>
 
       <p-card styleClass="section-card" header="Selecciona materias (máximo 3)">
         <div formArrayName="courses" class="formgrid grid compact-grid">
           @for (course of availableCourses(); track course.subjectId + '-' + formResetId(); let i = $index) {
             <div class="col-6 md:col-3 xl:col-2">
-              <div class="course-option">
+              <div class="course-option" [class.enrolled]="isEnrolled(course.subjectId)">
                 <p-checkbox
                   [formControlName]="i"
                   [binary]="true"
                   [inputId]="'course' + i"
+                  [disabled]="isEnrolled(course.subjectId)"
                   (onChange)="onCourseChange(i, $event)" />
                 <label [for]="'course' + i">
                   <span class="course-name">{{ course.name }}</span>
                   <small>Profesor: {{ course.teacher.name }}</small>
+                  @if (isEnrolled(course.subjectId)) {
+                    <small class="enrolled-label">Inscrito</small>
+                  }
                 </label>
               </div>
             </div>
@@ -93,7 +72,7 @@
             }
           </div>
         } @else {
-          <p class="empty-state">No hay compañeros para mostrar</p>
+          <p class="empty-state">Selecciona materias para ver con quién compartirás clase</p>
         }
       </p-card>
     </form>

@@ -1,25 +1,22 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormArray,
   FormBuilder,
   FormGroup,
-  ReactiveFormsModule,
-  Validators,
+  ReactiveFormsModule
 } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
-import { InputTextModule } from 'primeng/inputtext';
-import { KeyFilterModule } from 'primeng/keyfilter';
 import { MessageModule } from 'primeng/message';
+import { AuthService } from '../../../../core/services/auth.service';
 import { EnrollmentService } from '../../../../core/services/enrollment.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SignalRService } from '../../../../core/services/signal-r.service';
-import { StudentService } from '../../../../core/services/student.service';
 import { SubjectService } from '../../../../core/services/subject.service';
 import { BulkEnrollmentRequestDto } from '../../../../models/bulk-enrollment.model';
-import { Student, SubjectDto } from '../../../../models/subject.model';
+import { SubjectDto } from '../../../../models/subject.model';
 import { SubjectWithTeacher } from '../../../../models/teacher.model';
 import { evaluateCourseSelection } from './course-selection.rules';
 
@@ -34,8 +31,6 @@ interface CourseWithClassmates {
   imports: [
     ReactiveFormsModule,
     CardModule,
-    InputTextModule,
-    KeyFilterModule,
     CheckboxModule,
     ButtonModule,
     MessageModule
@@ -43,16 +38,17 @@ interface CourseWithClassmates {
   templateUrl: './student-registration-form.component.html',
   styleUrl: './student-registration-form.component.css'
 })
-export class StudentRegistrationFormComponent implements OnInit {
+export class StudentRegistrationFormComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly subjectService = inject(SubjectService);
-  private readonly studentService = inject(StudentService);
   private readonly enrollmentService = inject(EnrollmentService);
   private readonly signalRService = inject(SignalRService);
   private readonly notificationService = inject(NotificationService);
+  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly availableCourses = signal<SubjectWithTeacher[]>([]);
+  readonly enrolledSubjectIds = signal<number[]>([]);
   readonly selectedCoursesWithClassmates = signal<CourseWithClassmates[]>([]);
   readonly selectedCount = signal(0);
   readonly submitting = signal(false);
@@ -61,14 +57,23 @@ export class StudentRegistrationFormComponent implements OnInit {
 
   form!: FormGroup;
   private coursesWithStudents: SubjectDto[] = [];
-  private studentIdempotencyKey = crypto.randomUUID();
   private enrollmentIdempotencyKey = crypto.randomUUID();
 
   ngOnInit(): void {
-    this.initializeForm();
+    this.form = this.fb.group({
+      courses: this.fb.array([])
+    });
     this.loadAvailableCourses();
     this.loadCoursesWithStudents();
     this.loadSignalR();
+  }
+
+  ngOnDestroy(): void {
+    this.signalRService.stopConnection();
+  }
+
+  isEnrolled(subjectId: number): boolean {
+    return this.enrolledSubjectIds().includes(subjectId);
   }
 
   private loadSignalR(): void {
@@ -77,19 +82,12 @@ export class StudentRegistrationFormComponent implements OnInit {
       .then(() => {
         this.signalRService.subscribeMessage<unknown>('EnrollmentsCreated', () => {
           this.loadCoursesWithStudents();
+          this.loadMyEnrollments();
         });
       })
       .catch((error: unknown) => {
         console.error('Error al conectar con SignalR:', error);
       });
-  }
-
-  private initializeForm(): void {
-    this.form = this.fb.group({
-      fullName: ['', Validators.required],
-      identificationNumber: ['', Validators.required],
-      courses: this.fb.array([]),
-    });
   }
 
   private loadAvailableCourses(): void {
@@ -98,6 +96,17 @@ export class StudentRegistrationFormComponent implements OnInit {
       .subscribe((response) => {
         this.availableCourses.set(response.result ?? []);
         this.initializeCourseSelections();
+        this.loadMyEnrollments();
+      });
+  }
+
+  private loadMyEnrollments(): void {
+    this.enrollmentService.getMyEnrollments()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((response) => {
+        const ids = (response.result ?? []).map((enrollment) => enrollment.subjectId);
+        this.enrolledSubjectIds.set(ids);
+        this.applyEnrolledSelection();
       });
   }
 
@@ -129,6 +138,30 @@ export class StudentRegistrationFormComponent implements OnInit {
     this.availableCourses().forEach(() => {
       coursesArray.push(this.fb.control(false));
     });
+    this.applyEnrolledSelection();
+  }
+
+  private applyEnrolledSelection(): void {
+    if (!this.form || this.coursesFormArray.length === 0) {
+      return;
+    }
+
+    const enrolled = new Set(this.enrolledSubjectIds());
+    this.availableCourses().forEach((course, index) => {
+      const control = this.coursesFormArray.at(index);
+      if (!control) {
+        return;
+      }
+
+      if (enrolled.has(course.subjectId)) {
+        control.setValue(true, { emitEvent: false });
+        control.disable({ emitEvent: false });
+        return;
+      }
+
+      control.enable({ emitEvent: false });
+    });
+
     this.refreshClassmates();
   }
 
@@ -157,6 +190,11 @@ export class StudentRegistrationFormComponent implements OnInit {
       .filter((course): course is SubjectWithTeacher => course !== null);
   }
 
+  getNewSelectedCourses(): SubjectWithTeacher[] {
+    const enrolled = new Set(this.enrolledSubjectIds());
+    return this.getSelectedCourses().filter((course) => !enrolled.has(course.subjectId));
+  }
+
   private findCourseWithStudents(subjectId: number): SubjectDto | undefined {
     if (!Array.isArray(this.coursesWithStudents)) {
       return undefined;
@@ -175,6 +213,12 @@ export class StudentRegistrationFormComponent implements OnInit {
     }
 
     const courseToSelect = courses[index];
+    if (this.isEnrolled(courseToSelect.subjectId)) {
+      control.setValue(true, { emitEvent: false });
+      this.refreshClassmates();
+      return;
+    }
+
     const selectedOthers = this.coursesFormArray.controls
       .map((item, currentIndex) =>
         currentIndex !== index && item.value ? courses[currentIndex] : null
@@ -222,93 +266,31 @@ export class StudentRegistrationFormComponent implements OnInit {
       return;
     }
 
-    if (this.form.valid) {
-      const selectedCourses = this.getSelectedCourses();
-      if (selectedCourses.length === 0) {
-        this.notificationService.showWarning(
-          'Advertencia',
-          'Debes seleccionar al menos una materia'
-        );
-        return;
-      }
-
-      const student: Student = {
-        studentId: 0,
-        name: this.form.value.fullName,
-        identificationNumber: this.form.value.identificationNumber,
-      };
-
-      this.submitting.set(true);
-      this.studentService.createStudent(student, this.studentIdempotencyKey)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (response) => {
-            if (response.success && response.result) {
-              if (response.result.studentId > 0) {
-                this.createStudentCourses(response.result.studentId);
-                return;
-              }
-            }
-            this.submitting.set(false);
-            this.notificationService.showError('Error', response.message ?? 'No se pudo crear el estudiante');
-          },
-          error: () => {
-            this.submitting.set(false);
-            this.notificationService.showError('Error', 'No se pudo crear el estudiante');
-          }
-        });
-    } else {
-      this.handleFormValidation();
-    }
-  }
-
-  private resetAfterSuccess(): void {
-    this.submitting.set(false);
-    this.studentIdempotencyKey = crypto.randomUUID();
-    this.enrollmentIdempotencyKey = crypto.randomUUID();
-
-    this.form.get('fullName')?.reset('');
-    this.form.get('identificationNumber')?.reset('');
-    this.coursesFormArray.controls.forEach((control) => {
-      control.reset(false);
-    });
-
-    this.selectedCount.set(0);
-    this.selectedCoursesWithClassmates.set([]);
-    this.formResetId.update((value) => value + 1);
-    this.form.markAsPristine();
-    this.form.markAsUntouched();
-    this.loadCoursesWithStudents();
-  }
-
-  private handleFormValidation(): void {
-    if (this.form.get('fullName')?.errors?.['required']) {
-      this.notificationService.showWarning('Advertencia', 'El nombre es obligatorio');
+    const newCourses = this.getNewSelectedCourses();
+    if (newCourses.length === 0) {
+      this.notificationService.showWarning(
+        'Advertencia',
+        this.enrolledSubjectIds().length > 0
+          ? 'Ya estás inscrito en las materias seleccionadas'
+          : 'Debes seleccionar al menos una materia'
+      );
+      return;
     }
 
-    if (this.form.get('identificationNumber')?.errors?.['required']) {
-      this.notificationService.showWarning('Advertencia', 'El número de identificación es obligatorio');
-    }
-  }
-
-  private createStudentCourses(studentId: number): void {
-    const selectedCourses = this.getSelectedCourses();
-    const bulkEnrollmentRequestDto: BulkEnrollmentRequestDto = {
-      studentId,
-      subjectIds: selectedCourses.map((course) => course.subjectId),
+    const request: BulkEnrollmentRequestDto = {
+      studentId: this.auth.studentId() ?? 0,
+      subjectIds: newCourses.map((course) => course.subjectId)
     };
 
-    this.enrollmentService.createEnrollment(
-      bulkEnrollmentRequestDto,
-      this.enrollmentIdempotencyKey
-    )
+    this.submitting.set(true);
+    this.enrollmentService.createEnrollment(request, this.enrollmentIdempotencyKey)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.notificationService.showNewStudentNotification(
-              this.form.value.fullName,
-              selectedCourses.length
+            this.notificationService.showSuccess(
+              'Inscripción lista',
+              `Quedaste inscrito en ${newCourses.length} materia(s).`
             );
             this.resetAfterSuccess();
             return;
@@ -320,10 +302,21 @@ export class StudentRegistrationFormComponent implements OnInit {
             response.message ?? 'No se pudieron crear las inscripciones'
           );
         },
-        error: () => {
+        error: (error) => {
           this.submitting.set(false);
-          this.notificationService.showError('Error', 'No se pudieron crear las inscripciones');
+          this.notificationService.showError(
+            'Error',
+            error?.error?.message ?? 'No se pudieron crear las inscripciones'
+          );
         }
       });
+  }
+
+  private resetAfterSuccess(): void {
+    this.submitting.set(false);
+    this.enrollmentIdempotencyKey = crypto.randomUUID();
+    this.formResetId.update((value) => value + 1);
+    this.loadCoursesWithStudents();
+    this.loadMyEnrollments();
   }
 }

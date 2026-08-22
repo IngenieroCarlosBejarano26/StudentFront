@@ -1,0 +1,81 @@
+.professor-page {
+  padding: 1rem;
+}
+
+.header-row h2 {
+  margin: 0 0 0.25rem;
+}
+
+.header-row p {
+  margin: 0 0 0.85rem;
+  color: var(--text-color-secondary);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.actions {
+  margin-top: 0.85rem;
+}
+
+:host ::ng-deep .section-card {
+  margin-bottom: 0.85rem;
+}
+
+.credentials {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin: 0.85rem 0 0;
+}
+
+.credentials dt {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+}
+
+.credentials dd {
+  margin: 0.2rem 0 0;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.hint,
+.empty-state {
+  margin: 0 0 0.75rem;
+  color: var(--text-color-secondary);
+  font-size: 0.88rem;
+}
+
+.subject-box {
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  min-height: 100%;
+}
+
+.subject-box strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.subject-box ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.subject-box li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0;
+  font-size: 0.88rem;
+}
+
+.subject-box .empty {
+  color: var(--text-color-secondary);
+}
