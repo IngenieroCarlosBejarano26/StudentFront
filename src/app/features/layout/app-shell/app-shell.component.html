@@ -1,34 +1,32 @@
 <div class="app-shell">
-  <header class="app-bar">
-    <div class="app-brand">
-      <i class="pi pi-book"></i>
-      <span>Registro académico</span>
-    </div>
-    <nav class="app-nav">
+  <header class="topbar">
+    <div class="wordmark">Registro académico</div>
+
+    <nav class="topbar-nav" aria-label="Secciones">
       <a
         *appHasRole="roles.Profesor"
         routerLink="/profesor"
         routerLinkActive="active"
-        >Registrar estudiante</a>
+        >Estudiantes</a>
       <a
         *appHasRole="roles.Estudiante"
         routerLink="/estudiante"
         routerLinkActive="active"
         >Mis materias</a>
     </nav>
-    <div class="app-user">
-      <span class="app-user-name">{{ auth.username() }}</span>
-      <span class="app-role">{{ auth.role() }}</span>
+
+    <div class="topbar-session">
+      <span class="session-name">{{ auth.username() }}</span>
       <p-button
         type="button"
         label="Salir"
-        icon="pi pi-sign-out"
         size="small"
         severity="secondary"
-        [outlined]="true"
+        [text]="true"
         (onClick)="logout()" />
     </div>
   </header>
+
   <main class="app-main">
     <router-outlet />
   </main>

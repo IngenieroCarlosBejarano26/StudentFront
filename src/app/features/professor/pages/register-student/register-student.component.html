@@ -1,95 +1,104 @@
-<div class="professor-page">
-  <p-card styleClass="main-card">
-    <div class="header-row">
-      <div>
-        <h2>Registrar estudiante</h2>
-        <p>Crea la ficha del estudiante y su usuario para iniciar sesión.</p>
-      </div>
+<div class="page">
+  <header class="page-head">
+    <div>
+      <h1>Estudiantes</h1>
+      <p class="lede">El número de identificación será el usuario de acceso.</p>
     </div>
+  </header>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <p-card styleClass="section-card" header="Datos del estudiante">
-        <div class="formgrid grid">
-          <div class="col-12 md:col-6">
-            <label for="name">Nombre completo</label>
+  <div class="page-split">
+    <section class="panel">
+      <h2>Registrar</h2>
+      <p class="panel-copy">La contraseña temporal se muestra una sola vez.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="name">Nombre completo</label>
+          <span class="control">
             <input
               pInputText
               id="name"
               formControlName="name"
-              class="w-full"
               placeholder="Nombre del estudiante"
               maxlength="150" />
-          </div>
-          <div class="col-12 md:col-6">
-            <label for="identificationNumber">Número de identificación</label>
+          </span>
+        </div>
+        <div class="field">
+          <label for="identificationNumber">Identificación</label>
+          <span class="control">
             <input
               pInputText
               pKeyFilter="int"
               id="identificationNumber"
               formControlName="identificationNumber"
-              class="w-full"
-              placeholder="Será el usuario de acceso"
+              placeholder="Usuario de acceso"
               maxlength="30" />
-          </div>
+          </span>
         </div>
-        <div class="actions">
-          <p-button
-            type="submit"
-            label="Registrar y crear usuario"
-            icon="pi pi-user-plus"
-            [loading]="submitting()"
-            [disabled]="form.invalid || submitting()" />
-        </div>
-      </p-card>
-    </form>
+        <p-button
+          type="submit"
+          label="Registrar"
+          [loading]="submitting()"
+          [disabled]="form.invalid || submitting()" />
+      </form>
+    </section>
 
-    <p-card styleClass="section-card" header="Estudiantes en mis materias">
-      <p class="hint">Solo ves a quienes ya se inscribieron en las materias que dictas.</p>
+    <section class="panel">
+      <h2>En mis materias</h2>
+      <p class="panel-copy">Quienes ya se inscribieron en las materias que dictas.</p>
+
       @if (mySubjects().length > 0) {
-        <div class="formgrid grid">
+        <div class="roster-grid roster-grid-tight">
           @for (subject of mySubjects(); track subject.subjectId) {
-            <div class="col-12 md:col-6">
-              <div class="subject-box">
+            <div class="roster-card">
+              <div class="roster-head">
                 <strong>{{ subject.subjectName }}</strong>
-                <ul>
-                  @for (student of subject.students; track student.studentId) {
-                    <li>
-                      <i class="pi pi-user"></i>
-                      <span>{{ student.name }}</span>
-                    </li>
-                  } @empty {
-                    <li class="empty">Aún no hay estudiantes inscritos</li>
-                  }
-                </ul>
+                <span class="badge">{{ subject.students.length }}</span>
               </div>
+              <ul class="person-list">
+                @for (student of subject.students; track student.studentId) {
+                  <li>{{ student.name }}</li>
+                } @empty {
+                  <li class="empty">Sin inscritos.</li>
+                }
+              </ul>
             </div>
           }
         </div>
       } @else {
-        <p class="empty-state">No hay materias asignadas a tu usuario.</p>
+        <p class="empty-state">No hay materias asignadas.</p>
       }
-    </p-card>
+    </section>
+  </div>
 
-    @if (created(); as account) {
-      <p-card styleClass="section-card credentials-card" header="Credenciales del estudiante">
-        <p-message
-          severity="warn"
-          text="Copia estos datos ahora. La contraseña temporal no se vuelve a mostrar." />
-        <dl class="credentials">
-          <div>
-            <dt>Estudiante</dt>
-            <dd>{{ account.name }}</dd>
-          </div>
-          <div>
-            <dt>Usuario</dt>
-            <dd>{{ account.username }}</dd>
-          </div>
-          <div>
-            <dt>Contraseña temporal</dt>
-            <dd>{{ account.temporaryPassword }}</dd>
-          </div>
-        </dl>
-      </p-card>
-    }
-  </p-card>
+  @if (created(); as account) {
+    <section class="panel credentials-card">
+      <h2>Credenciales</h2>
+      <p class="panel-copy">Cópialas ahora. La contraseña no se vuelve a mostrar.</p>
+      <dl class="credentials">
+        <div>
+          <dt>Estudiante</dt>
+          <dd>{{ account.name }}</dd>
+        </div>
+        <div>
+          <dt>Usuario</dt>
+          <dd>
+            {{ account.username }}
+            <button type="button" class="icon-btn" (click)="copy(account.username, 'Usuario')" title="Copiar usuario">
+              <i class="pi pi-copy"></i>
+            </button>
+          </dd>
+        </div>
+        <div>
+          <dt>Contraseña</dt>
+          <dd>
+            {{ account.temporaryPassword }}
+            <button type="button" class="icon-btn" (click)="copy(account.temporaryPassword, 'Contraseña')" title="Copiar contraseña">
+              <i class="pi pi-copy"></i>
+            </button>
+          </dd>
+        </div>
+      </dl>
+    </section>
+  }
 </div>

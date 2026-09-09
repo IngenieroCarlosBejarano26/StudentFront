@@ -3,109 +3,40 @@
   height: 100%;
 }
 
-.login-page {
-  display: flex;
-  flex-direction: column;
+.auth-layout,
+.auth-main {
   height: 100%;
-  background: var(--surface-ground);
 }
 
-.login-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1rem;
-  background: var(--surface-card);
-  border-bottom: 1px solid var(--surface-border);
-  font-weight: 700;
+.auth-main {
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
 }
 
-.login-bar i {
-  color: var(--primary-color);
+.auth-card {
+  width: min(380px, 100%);
 }
 
-.login-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem 1rem;
+.wordmark {
+  margin: 0 0 2rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
-:host ::ng-deep .login-card.p-card {
-  width: 420px;
-  max-width: 100%;
-  border-top: 3px solid var(--primary-color);
+.auth-card h1 {
+  font-size: 1.85rem;
 }
 
-:host ::ng-deep .login-card .p-card-body,
-:host ::ng-deep .login-card .p-card-content {
-  padding: 1.35rem 1.4rem 1.2rem;
+.auth-card form {
+  margin-top: 1.5rem;
 }
 
-h2 {
-  margin: 0;
-  font-size: 1.3rem;
-}
-
-.lead {
-  margin: 0.3rem 0 1.15rem;
-  color: var(--text-color-secondary);
-  font-size: 0.9rem;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0.85rem;
-}
-
-label {
-  margin-bottom: 0.3rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.control {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0 0.65rem;
-  border: 1px solid var(--surface-border);
-  border-radius: 6px;
-  background: var(--surface-card);
-}
-
-.control:focus-within {
-  border-color: var(--primary-color);
-}
-
-.control i {
-  color: var(--text-color-secondary);
-  font-size: 0.9rem;
-}
-
-.control input,
-:host ::ng-deep .control .p-inputtext {
-  flex: 1;
-  width: 100%;
-  border: 0;
-  padding: 0.65rem 0;
-  box-shadow: none;
-}
-
-.eye {
-  border: 0;
-  background: transparent;
-  color: var(--text-color-secondary);
-  padding: 0.2rem;
-  cursor: pointer;
-}
-
-.hint {
-  margin: 0.95rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--surface-border);
-  color: var(--text-color-secondary);
-  font-size: 0.8rem;
+@media (max-width: 640px) {
+  .auth-main {
+    align-items: start;
+    padding-top: 2.5rem;
+  }
 }

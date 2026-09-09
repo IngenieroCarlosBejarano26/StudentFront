@@ -1,13 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-forbidden',
   standalone: true,
-  imports: [CardModule, ButtonModule],
+  imports: [ButtonModule],
   templateUrl: './forbidden.component.html',
   styleUrl: './forbidden.component.css'
 })

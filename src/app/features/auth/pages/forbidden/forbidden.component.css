@@ -1,26 +1,18 @@
-.forbidden-page {
-  min-height: 100%;
+.forbidden {
   display: grid;
+  min-height: 100%;
   place-items: center;
-  padding: 1.5rem;
 }
 
-:host ::ng-deep .forbidden-card.p-card {
-  width: min(420px, 100%);
+.forbidden-card {
+  width: min(360px, 100%);
   text-align: center;
 }
 
-i {
-  font-size: 2rem;
-  color: var(--red-500);
+.forbidden-card h1 {
+  font-size: 1.7rem;
 }
 
-h1 {
-  margin: 0.6rem 0 0.35rem;
-  font-size: 1.4rem;
-}
-
-p {
-  margin: 0 0 1rem;
-  color: var(--text-color-secondary);
+.forbidden-card .lede {
+  margin: 0.5rem auto 1.25rem;
 }

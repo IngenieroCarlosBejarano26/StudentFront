@@ -1,8 +1,7 @@
-<div class="forbidden-page">
-  <p-card styleClass="forbidden-card">
-    <i class="pi pi-lock"></i>
-    <h1>Acceso denegado</h1>
-    <p>Tu rol no tiene permiso para entrar a esta sección.</p>
-    <p-button label="Volver" icon="pi pi-home" (onClick)="goHome()" />
-  </p-card>
+<div class="page forbidden">
+  <section class="forbidden-card">
+    <h1>Sin acceso</h1>
+    <p class="lede">Tu rol no puede entrar a esta sección.</p>
+    <p-button label="Volver" [text]="true" (onClick)="goHome()" />
+  </section>
 </div>

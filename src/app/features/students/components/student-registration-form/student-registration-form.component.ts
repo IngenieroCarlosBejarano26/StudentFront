@@ -7,7 +7,6 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -30,7 +29,6 @@ interface CourseWithClassmates {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    CardModule,
     CheckboxModule,
     ButtonModule,
     MessageModule

@@ -3,10 +3,8 @@ import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angul
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { KeyFilterModule } from 'primeng/keyfilter';
-import { MessageModule } from 'primeng/message';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SignalRService } from '../../../../core/services/signal-r.service';
 import { StudentService } from '../../../../core/services/student.service';
@@ -17,7 +15,7 @@ import { SubjectDto } from '../../../../models/subject.model';
 @Component({
   selector: 'app-register-student',
   standalone: true,
-  imports: [ReactiveFormsModule, CardModule, InputTextModule, KeyFilterModule, ButtonModule, MessageModule],
+  imports: [ReactiveFormsModule, InputTextModule, KeyFilterModule, ButtonModule],
   templateUrl: './register-student.component.html',
   styleUrl: './register-student.component.css'
 })
@@ -53,6 +51,13 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.signalR.stopConnection();
+  }
+
+  copy(value: string, label: string): void {
+    void navigator.clipboard.writeText(value).then(
+      () => this.notifications.showSuccess('Copiado', `${label} copiado al portapapeles.`),
+      () => this.notifications.showError('Error', `No se pudo copiar ${label.toLowerCase()}.`)
+    );
   }
 
   submit(): void {

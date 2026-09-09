@@ -3,7 +3,6 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -11,7 +10,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CardModule, InputTextModule, ButtonModule],
+  imports: [ReactiveFormsModule, InputTextModule, ButtonModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
